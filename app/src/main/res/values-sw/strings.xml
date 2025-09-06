@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BreathWatch</string>
+    
+    <!-- Onboarding -->
+    <string name="welcome_title">Karibu BreathWatch</string>
+    <string name="welcome_subtitle">Mwenzako wa kibinafsi wa ubora wa hewa</string>
+    <string name="privacy_first_title">Faragha Kwanza</string>
+    <string name="privacy_description">• Rekodi zako zote za afya zinabaki kwenye kifaa chako\n• Hakuna data ya kibinafsi inayoshirikiwa na wahusika wengine\n• Uchanganuzi ni wa hiari kabisa\n• Wewe ndiye unayedhibiti data yako</string>
+    <string name="features_title">Kile BreathWatch Kinachofanya</string>
+    <string name="features_description">• Ufuatiliaji wa ubora wa hewa kwa wakati halisi\n• Ushauri wa afya uliobinafsishwa\n• Ufuatiliaji wa dalili za kila siku\n• Maarifa ya afya ya kila wiki\n• Msaada wa nje ya mtandao</string>
+    <string name="location_permission_title">Ufikiaji wa Mahali</string>
+    <string name="location_permission_description">Tunahitaji mahali pako ili kutoa data sahihi ya ubora wa hewa kwa eneo lako. Hii inatusaidia kukupa ushauri muhimu wa afya.</string>
+    <string name="grant_location_permission">Ruhusu Idhini ya Mahali</string>
+    <string name="skip_location_manual">Ruka (Ingiza mahali kwa mikono)</string>
+    <string name="enter_location_title">Ingiza Mahali Pako</string>
+    <string name="location_placeholder">k.m., Nairobi, Kenya</string>
+    <string name="get_started">Anza</string>
+    <string name="terms_privacy">Kwa kuendelea, unakubali Masharti yetu ya Huduma na Sera ya Faragha</string>
+    
+    <!-- Home Screen -->
+    <string name="refresh_data">Onyesha upya data</string>
+    <string name="settings">Mipangilio</string>
+    <string name="add_health_log">Ongeza rekodi ya afya</string>
+    <string name="air_quality">Ubora wa Hewa</string>
+    <string name="weather">Hali ya Hewa</string>
+    <string name="safety_advice">Ushauri wa Usalama</string>
+    <string name="last_updated">Ilisasishwa mwisho: %1$s</string>
+    <string name="stale_data">Data ya zamani</string>
+    <string name="data_unavailable">Data haipatikani</string>
+    
+    <!-- AQI Categories -->
+    <string name="aqi_good">Nzuri</string>
+    <string name="aqi_moderate">Ya Wastani</string>
+    <string name="aqi_unhealthy_sensitive">Si Nzuri kwa Vikundi Vyenye Unyeti</string>
+    <string name="aqi_unhealthy">Si Nzuri</string>
+    <string name="aqi_very_unhealthy">Si Nzuri Kabisa</string>
+    <string name="aqi_hazardous">Hatari</string>
+    <string name="aqi_unknown">Haijulikani</string>
+    
+    <!-- Safety Advice -->
+    <string name="advice_good">Ubora wa hewa ni mzuri. Siku nzuri ya shughuli za nje!</string>
+    <string name="advice_moderate">Ubora wa hewa ni wa kukubalika. Watu wenye unyeti wanapaswa kufikiria kupunguza shughuli za nje kwa muda mrefu.</string>
+    <string name="advice_unhealthy_sensitive">Vikundi vyenye unyeti vinapaswa kupunguza shughuli za nje. Fikiria kuvaa barakoa ukihitaji kwenda nje.</string>
+    <string name="advice_unhealthy">Kila mtu anapaswa kupunguza shughuli za nje. Vaa barakoa ukiwa nje na funga madirisha.</string>
+    <string name="advice_very_unhealthy">Epuka shughuli za nje. Kaa ndani na usafishaji wa hewa ikiwezekana.</string>
+    <string name="advice_hazardous">Hali ya dharura. Epuka shughuli zote za nje. Tafuta msaada wa kimatibabu ukipata dalili.</string>
+    <string name="advice_unknown">Data ya ubora wa hewa haipatikani. Tumia tahadhari ukiwa nje.</string>
+    
+    <!-- Health Log -->
+    <string name="health_log">Rekodi ya Afya</string>
+    <string name="daily_checkin">Ukaguzi wa Kila Siku</string>
+    <string name="todays_log">Rekodi ya Leo</string>
+    <string name="how_feeling_today">Unahisije leo?</string>
+    <string name="any_symptoms_today">Je, una dalili zoyote leo?</string>
+    <string name="notes_optional">Maelezo (si lazima)</string>
+    <string name="notes_placeholder">Unahisije? Je, una maoni yoyote?</string>
+    <string name="save_log">Hifadhi Rekodi</string>
+    <string name="update_log">Sasisha Rekodi</string>
+    <string name="this_week">Wiki Hii</string>
+    <string name="recent_entries">Maingizo ya Hivi Karibuni</string>
+    <string name="health_log_saved">Rekodi ya afya imehifadhiwa kwa ufanisi!</string>
+    
+    <!-- Feelings -->
+    <string name="feeling_very_poor">Mbaya Sana</string>
+    <string name="feeling_poor">Mbaya</string>
+    <string name="feeling_fair">Wastani</string>
+    <string name="feeling_good">Nzuri</string>
+    <string name="feeling_excellent">Bora</string>
+    
+    <!-- Symptoms -->
+    <string name="symptom_cough">Kikohozi</string>
+    <string name="symptom_sore_throat">Koo kuuma</string>
+    <string name="symptom_wheeze">Kupumua kwa kelele</string>
+    <string name="symptom_shortness_breath">Upungufu wa pumzi</string>
+    <string name="symptom_runny_nose">Pua kutokwa na majimaji</string>
+    
+    <!-- Settings -->
+    <string name="notifications_section">Arifa</string>
+    <string name="air_quality_alerts">Arifa za Ubora wa Hewa</string>
+    <string name="air_quality_alerts_desc">Pata arifa wakati ubora wa hewa unapozidi kiwango</string>
+    <string name="aqi_alert_threshold">Kiwango cha Arifa ya AQI</string>
+    <string name="current_threshold">Ya sasa: %1$d µg/m³ PM2.5</string>
+    
+    <string name="location_section">Mahali</string>
+    <string name="location_setting">Mahali</string>
+    <string name="location_not_set">Haijawekwa</string>
+    
+    <string name="appearance_section">Mwonekano</string>
+    <string name="theme_setting">Mandhari</string>
+    <string name="theme_light">Mwanga</string>
+    <string name="theme_dark">Giza</string>
+    <string name="theme_system">Chaguo-msingi la mfumo</string>
+    
+    <string name="data_section">Data</string>
+    <string name="export_health_data">Hamisha Data ya Afya</string>
+    <string name="export_health_data_desc">Pakua rekodi zako za afya kama CSV</string>
+    <string name="health_data_exported">Data ya afya imehamishwa kwa ufanisi!</string>
+    
+    <string name="privacy_section">Faragha</string>
+    <string name="privacy_policy">Sera ya Faragha</string>
+    <string name="privacy_policy_desc">Jifunze jinsi tunavyolinda data yako</string>
+    <string name="about_breathwatch">Kuhusu BreathWatch</string>
+    <string name="app_version">Toleo 1.0.0</string>
+    
+    <!-- Dialogs -->
+    <string name="set_location">Weka Mahali</string>
+    <string name="set_location_desc">Ingiza jiji na nchi yako kwa data sahihi ya ubora wa hewa.</string>
+    <string name="choose_theme">Chagua Mandhari</string>
+    <string name="aqi_threshold_dialog_title">Kiwango cha Arifa ya AQI</string>
+    <string name="aqi_threshold_desc">Weka kiwango cha PM2.5 (µg/m³) ambacho unataka kupokea arifa.</string>
+    <string name="recommended_threshold">Inapendekezwa: 35 µg/m³ (mwongozo wa WHO)</string>
+    
+    <!-- Common -->
+    <string name="save">Hifadhi</string>
+    <string name="cancel">Ghairi</string>
+    <string name="done">Imemaliza</string>
+    <string name="dismiss">Ondoa</string>
+    <string name="back">Rudi</string>
+    <string name="error">Hitilafu</string>
+    <string name="success">Mafanikio</string>
+    <string name="loading">Inapakia...</string>
+    
+    <!-- Units -->
+    <string name="celsius">°C</string>
+    <string name="fahrenheit">°F</string>
+    <string name="humidity_unit">%</string>
+    <string name="wind_unit">km/h</string>
+    <string name="pm_unit">µg/m³</string>
+    
+    <!-- Weather -->
+    <string name="humidity">Unyevu</string>
+    <string name="wind">Upepo</string>
+    <string name="uv_index">Kiwango cha UV</string>
+    <string name="uv_low">Chini</string>
+    <string name="uv_moderate">Wastani</string>
+    <string name="uv_high">Juu</string>
+    <string name="uv_very_high">Juu Sana</string>
+    <string name="uv_extreme">Kupindukia</string>
+    
+    <!-- Notifications -->
+    <string name="air_quality_alert">Arifa ya Ubora wa Hewa</string>
+    <string name="air_quality_alert_desc">Ubora wa hewa ni %1$s katika eneo lako</string>
+    
+    <!-- Chart -->
+    <string name="feeling_legend">Hisia</string>
+    <string name="symptoms_legend">Dalili</string>
+    <string name="expand">Panua</string>
+    <string name="collapse">Kunja</string>
+    
+    <!-- Errors -->
+    <string name="error_network">Hitilafu ya mtandao. Tafadhali angalia muunganisho wako.</string>
+    <string name="error_location">Haiwezi kupata mahali. Tafadhali angalia ruhusa.</string>
+    <string name="error_data_fetch">Imeshindwa kupata data. Tafadhali jaribu tena.</string>
+    <string name="error_save_log">Imeshindwa kuhifadhi rekodi ya afya. Tafadhali jaribu tena.</string>
+    <string name="error_export">Imeshindwa kuhamisha data. Tafadhali jaribu tena.</string>
+</resources>
