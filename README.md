@@ -223,5 +223,5 @@ For support, email support@breathwatch.app or create an issue in this repository
 
 ---
 
-**Built with ❤️ for cleaner air and healthier communities**
+**Built with Daniel Wanjala for cleaner air and healthier communities**
 Android Project
