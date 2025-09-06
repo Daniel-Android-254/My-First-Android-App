@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary colors -->
+    <color name="teal_primary">#006A6B</color>
+    <color name="teal_primary_container">#6FF7F8</color>
+    <color name="teal_on_primary_container">#002020</color>
+    
+    <!-- Secondary colors -->
+    <color name="amber_secondary">#FFB300</color>
+    <color name="amber_secondary_container">#FFECB3</color>
+    <color name="amber_on_secondary_container">#261900</color>
+    
+    <!-- Neutral colors -->
+    <color name="neutral_tertiary">#5F5F5F</color>
+    
+    <!-- Surface colors -->
+    <color name="surface">#FEFBFF</color>
+    <color name="on_surface">#1C1B1F</color>
+    <color name="surface_variant">#E7E0EC</color>
+    <color name="on_surface_variant">#49454F</color>
+    
+    <!-- Background colors -->
+    <color name="background">#FEFBFF</color>
+    <color name="on_background">#1C1B1F</color>
+    
+    <!-- Error colors -->
+    <color name="error">#BA1A1A</color>
+    <color name="error_container">#FFDAD6</color>
+    <color name="on_error_container">#410002</color>
+    
+    <!-- Success colors -->
+    <color name="success">#00C853</color>
+    <color name="success_container">#B9F6CA</color>
+    <color name="on_success_container">#002114</color>
+    
+    <!-- AQI Category colors -->
+    <color name="aqi_good">#4CAF50</color>
+    <color name="aqi_moderate">#FFEB3B</color>
+    <color name="aqi_unhealthy_sensitive">#FF9800</color>
+    <color name="aqi_unhealthy">#F44336</color>
+    <color name="aqi_very_unhealthy">#9C27B0</color>
+    <color name="aqi_hazardous">#795548</color>
+    
+    <!-- Basic colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    
+    <!-- Material Design colors -->
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+</resources>
