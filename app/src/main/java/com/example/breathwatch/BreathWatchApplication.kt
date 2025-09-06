@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import com.example.breathwatch.util.WorkManagerScheduler
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
@@ -13,6 +14,7 @@ class BreathWatchApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
+        WorkManagerScheduler.schedulePeriodicSync(this)
     }
     
     private fun createNotificationChannel() {
