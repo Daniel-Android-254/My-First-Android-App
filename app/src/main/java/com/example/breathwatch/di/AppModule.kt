@@ -6,8 +6,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.breathwatch.BuildConfig
 import com.example.breathwatch.data.local.AppDatabase
-import com.example.breathwatch.data.remote.AirQualityApi
-import com.example.breathwatch.data.remote.WeatherApi
+import com.example.breathwatch.data.remote.api.AirQualityApi
+import com.example.breathwatch.data.remote.api.WeatherApi
 import com.example.breathwatch.data.repository.AirQualityRepositoryImpl
 import com.example.breathwatch.data.repository.HealthLogRepositoryImpl
 import com.example.breathwatch.data.repository.WeatherRepositoryImpl
