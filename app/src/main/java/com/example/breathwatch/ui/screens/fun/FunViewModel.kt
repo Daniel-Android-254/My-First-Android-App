@@ -14,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FunViewModel @Inject constructor(
-    // TODO: Inject use cases when implemented
+    private val getJokeUseCase: GetJokeUseCase,
+    private val getQuoteUseCase: GetQuoteUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FunUiState())
