@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BreathWatch</string>
+    
+    <!-- Onboarding -->
+    <string name="welcome_title">Welcome to BreathWatch</string>
+    <string name="welcome_subtitle">Your personal air quality companion</string>
+    <string name="privacy_first_title">Privacy First</string>
+    <string name="privacy_description">• All your health logs stay on your device\n• No personal data is shared with third parties\n• Analytics are completely optional\n• You control your data</string>
+    <string name="features_title">What BreathWatch Does</string>
+    <string name="features_description">• Real-time air quality monitoring\n• Personalized health advice\n• Daily symptom tracking\n• Weekly health insights\n• Offline support</string>
+    <string name="location_permission_title">Location Access</string>
+    <string name="location_permission_description">We need your location to provide accurate air quality data for your area. This helps us give you relevant health advice.</string>
+    <string name="grant_location_permission">Grant Location Permission</string>
+    <string name="skip_location_manual">Skip (Enter location manually)</string>
+    <string name="enter_location_title">Enter Your Location</string>
+    <string name="location_placeholder">e.g., Nairobi, Kenya</string>
+    <string name="get_started">Get Started</string>
+    <string name="terms_privacy">By continuing, you agree to our Terms of Service and Privacy Policy</string>
+    
+    <!-- Home Screen -->
+    <string name="refresh_data">Refresh data</string>
+    <string name="settings">Settings</string>
+    <string name="add_health_log">Add health log</string>
+    <string name="air_quality">Air Quality</string>
+    <string name="weather">Weather</string>
+    <string name="safety_advice">Safety Advice</string>
+    <string name="last_updated">Last updated: %1$s</string>
+    <string name="stale_data">Stale data</string>
+    <string name="data_unavailable">Data unavailable</string>
+    
+    <!-- AQI Categories -->
+    <string name="aqi_good">Good</string>
+    <string name="aqi_moderate">Moderate</string>
+    <string name="aqi_unhealthy_sensitive">Unhealthy for Sensitive Groups</string>
+    <string name="aqi_unhealthy">Unhealthy</string>
+    <string name="aqi_very_unhealthy">Very Unhealthy</string>
+    <string name="aqi_hazardous">Hazardous</string>
+    <string name="aqi_unknown">Unknown</string>
+    
+    <!-- Safety Advice -->
+    <string name="advice_good">Air quality is good. Great day for outdoor activities!</string>
+    <string name="advice_moderate">Air quality is acceptable. Sensitive individuals should consider limiting prolonged outdoor activities.</string>
+    <string name="advice_unhealthy_sensitive">Sensitive groups should reduce outdoor activities. Consider wearing a mask if you must go outside.</string>
+    <string name="advice_unhealthy">Everyone should limit outdoor activities. Wear a mask when outside and keep windows closed.</string>
+    <string name="advice_very_unhealthy">Avoid outdoor activities. Stay indoors with air purification if possible.</string>
+    <string name="advice_hazardous">Emergency conditions. Avoid all outdoor activities. Seek medical attention if experiencing symptoms.</string>
+    <string name="advice_unknown">Air quality data unavailable. Use caution when outdoors.</string>
+    
+    <!-- Health Log -->
+    <string name="health_log">Health Log</string>
+    <string name="daily_checkin">Daily Check-in</string>
+    <string name="todays_log">Today\'s Log</string>
+    <string name="how_feeling_today">How are you feeling today?</string>
+    <string name="any_symptoms_today">Any symptoms today?</string>
+    <string name="notes_optional">Notes (optional)</string>
+    <string name="notes_placeholder">How are you feeling? Any observations?</string>
+    <string name="save_log">Save Log</string>
+    <string name="update_log">Update Log</string>
+    <string name="this_week">This Week</string>
+    <string name="recent_entries">Recent Entries</string>
+    <string name="health_log_saved">Health log saved successfully!</string>
+    
+    <!-- Feelings -->
+    <string name="feeling_very_poor">Very Poor</string>
+    <string name="feeling_poor">Poor</string>
+    <string name="feeling_fair">Fair</string>
+    <string name="feeling_good">Good</string>
+    <string name="feeling_excellent">Excellent</string>
+    
+    <!-- Symptoms -->
+    <string name="symptom_cough">Cough</string>
+    <string name="symptom_sore_throat">Sore throat</string>
+    <string name="symptom_wheeze">Wheezing</string>
+    <string name="symptom_shortness_breath">Shortness of breath</string>
+    <string name="symptom_runny_nose">Runny nose</string>
+    
+    <!-- Settings -->
+    <string name="notifications_section">Notifications</string>
+    <string name="air_quality_alerts">Air Quality Alerts</string>
+    <string name="air_quality_alerts_desc">Get notified when air quality exceeds threshold</string>
+    <string name="aqi_alert_threshold">AQI Alert Threshold</string>
+    <string name="current_threshold">Current: %1$d µg/m³ PM2.5</string>
+    
+    <string name="location_section">Location</string>
+    <string name="location_setting">Location</string>
+    <string name="location_not_set">Not set</string>
+    
+    <string name="appearance_section">Appearance</string>
+    <string name="theme_setting">Theme</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system">System default</string>
+    
+    <string name="data_section">Data</string>
+    <string name="export_health_data">Export Health Data</string>
+    <string name="export_health_data_desc">Download your health logs as CSV</string>
+    <string name="health_data_exported">Health data exported successfully!</string>
+    
+    <string name="privacy_section">Privacy</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="privacy_policy_desc">Learn how we protect your data</string>
+    <string name="about_breathwatch">About BreathWatch</string>
+    <string name="app_version">Version 1.0.0</string>
+    
+    <!-- Dialogs -->
+    <string name="set_location">Set Location</string>
+    <string name="set_location_desc">Enter your city and country for accurate air quality data.</string>
+    <string name="choose_theme">Choose Theme</string>
+    <string name="aqi_threshold_dialog_title">AQI Alert Threshold</string>
+    <string name="aqi_threshold_desc">Set the PM2.5 level (µg/m³) at which you want to receive alerts.</string>
+    <string name="recommended_threshold">Recommended: 35 µg/m³ (WHO guideline)</string>
+    
+    <!-- Common -->
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="done">Done</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="back">Back</string>
+    <string name="error">Error</string>
+    <string name="success">Success</string>
+    <string name="loading">Loading...</string>
+    
+    <!-- Units -->
+    <string name="celsius">°C</string>
+    <string name="fahrenheit">°F</string>
+    <string name="humidity_unit">%</string>
+    <string name="wind_unit">km/h</string>
+    <string name="pm_unit">µg/m³</string>
+    
+    <!-- Weather -->
+    <string name="humidity">Humidity</string>
+    <string name="wind">Wind</string>
+    <string name="uv_index">UV Index</string>
+    <string name="uv_low">Low</string>
+    <string name="uv_moderate">Moderate</string>
+    <string name="uv_high">High</string>
+    <string name="uv_very_high">Very High</string>
+    <string name="uv_extreme">Extreme</string>
+    
+    <!-- Notifications -->
+    <string name="air_quality_alert">Air Quality Alert</string>
+    <string name="air_quality_alert_desc">Air quality is %1$s in your area</string>
+    
+    <!-- Chart -->
+    <string name="feeling_legend">Feeling</string>
+    <string name="symptoms_legend">Symptoms</string>
+    <string name="expand">Expand</string>
+    <string name="collapse">Collapse</string>
+    
+    <!-- Errors -->
+    <string name="error_network">Network error. Please check your connection.</string>
+    <string name="error_location">Unable to get location. Please check permissions.</string>
+    <string name="error_data_fetch">Failed to fetch data. Please try again.</string>
+    <string name="error_save_log">Failed to save health log. Please try again.</string>
+    <string name="error_export">Failed to export data. Please try again.</string>
+</resources>
