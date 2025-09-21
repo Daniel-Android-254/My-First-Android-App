@@ -4,6 +4,14 @@ object Constants {
     // API Endpoints
     const val WEATHER_BASE_URL = "https://wttr.in/"
     const val AIR_QUALITY_BASE_URL = "https://api.openaq.org/v2/"
+    const val CAT_FACT_BASE_URL = "https://catfact.ninja/"
+    const val DOG_IMAGE_BASE_URL = "https://dog.ceo/api/"
+    const val TRIVIA_BASE_URL = "https://the-trivia-api.com/api/"
+    const val PUBLIC_HOLIDAY_BASE_URL = "https://date.nager.at/api/v3/"
+    const val UNIVERSITY_BASE_URL = "http://universities.hipolabs.com/"
+    const val BOOK_BASE_URL = "https://www.googleapis.com/books/v1/"
+    const val BITCOIN_PRICE_BASE_URL = "https://api.coindesk.com/v1/bpi/"
+    const val SPACE_BODY_BASE_URL = "https://api.le-systeme-solaire.net/rest/"
     
     // DataStore Keys
     object PreferencesKeys {

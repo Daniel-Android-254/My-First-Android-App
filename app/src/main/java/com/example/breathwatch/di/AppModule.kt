@@ -8,10 +8,12 @@ import com.example.breathwatch.BuildConfig
 import com.example.breathwatch.data.local.AppDatabase
 import com.example.breathwatch.data.remote.api.AirQualityApi
 import com.example.breathwatch.data.remote.api.WeatherApi
+import com.example.breathwatch.data.remote.api.extras.*
 import com.example.breathwatch.data.repository.AirQualityRepositoryImpl
+import com.example.breathwatch.data.repository.ExtrasRepositoryImpl
 import com.example.breathwatch.data.repository.HealthLogRepositoryImpl
-import com.example.breathwatch.data.repository.WeatherRepositoryImpl
 import com.example.breathwatch.domain.repository.AirQualityRepository
+import com.example.breathwatch.domain.repository.ExtrasRepository
 import com.example.breathwatch.domain.repository.HealthLogRepository
 import com.example.breathwatch.domain.repository.WeatherRepository
 import com.example.breathwatch.util.Constants
@@ -98,6 +100,94 @@ object AppModule {
     
     @Provides
     @Singleton
+    fun provideCatFactApi(okHttpClient: OkHttpClient, moshi: Moshi): CatFactApi {
+        return Retrofit.Builder()
+            .baseUrl(Constants.CAT_FACT_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(CatFactApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDogImageApi(okHttpClient: OkHttpClient, moshi: Moshi): DogImageApi {
+        return Retrofit.Builder()
+            .baseUrl(Constants.DOG_IMAGE_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(DogImageApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideTriviaApi(okHttpClient: OkHttpClient, moshi: Moshi): TriviaApi {
+        return Retrofit.Builder()
+            .baseUrl(Constants.TRIVIA_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(TriviaApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun providePublicHolidayApi(okHttpClient: OkHttpClient, moshi: Moshi): PublicHolidayApi {
+        return Retrofit.Builder()
+            .baseUrl(Constants.PUBLIC_HOLIDAY_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(PublicHolidayApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUniversityApi(okHttpClient: OkHttpClient, moshi: Moshi): UniversityApi {
+        return Retrofit.Builder()
+            .baseUrl(Constants.UNIVERSITY_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(UniversityApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBookApi(okHttpClient: OkHttpClient, moshi: Moshi): BookApi {
+        return Retrofit.Builder()
+            .baseUrl(Constants.BOOK_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(BookApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBitcoinPriceApi(okHttpClient: OkHttpClient, moshi: Moshi): BitcoinPriceApi {
+        return Retrofit.Builder()
+            .baseUrl(Constants.BITCOIN_PRICE_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(BitcoinPriceApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSpaceBodyApi(okHttpClient: OkHttpClient, moshi: Moshi): SpaceBodyApi {
+        return Retrofit.Builder()
+            .baseUrl(Constants.SPACE_BODY_BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(SpaceBodyApi::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
         return AppDatabase.getInstance(context)
     }
@@ -118,6 +208,30 @@ object AppModule {
         appDatabase: AppDatabase
     ): AirQualityRepository {
         return AirQualityRepositoryImpl(airQualityApi, appDatabase.airQualityDataDao())
+    }
+    
+    @Provides
+    @Singleton
+    fun provideExtrasRepository(
+        catFactApi: CatFactApi,
+        dogImageApi: DogImageApi,
+        triviaApi: TriviaApi,
+        publicHolidayApi: PublicHolidayApi,
+        universityApi: UniversityApi,
+        bookApi: BookApi,
+        bitcoinPriceApi: BitcoinPriceApi,
+        spaceBodyApi: SpaceBodyApi
+    ): ExtrasRepository {
+        return ExtrasRepositoryImpl(
+            catFactApi,
+            dogImageApi,
+            triviaApi,
+            publicHolidayApi,
+            universityApi,
+            bookApi,
+            bitcoinPriceApi,
+            spaceBodyApi
+        )
     }
     
     @Provides

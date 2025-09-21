@@ -3,6 +3,8 @@ package com.example.breathwatch.ui.screens.extras
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.breathwatch.domain.model.CatFactData
+import com.example.breathwatch.data.remote.model.extras.*
+import com.example.breathwatch.domain.usecase.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +15,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ExtrasViewModel @Inject constructor(
-    // TODO: Inject use cases when implemented
+    private val getCatFactUseCase: GetCatFactUseCase,
+    private val getDogImageUseCase: GetDogImageUseCase,
+    private val getTriviaQuestionUseCase: GetTriviaQuestionUseCase,
+    private val getPublicHolidaysUseCase: GetPublicHolidaysUseCase,
+    private val getUniversitiesUseCase: GetUniversitiesUseCase,
+    private val getBooksUseCase: GetBooksUseCase,
+    private val getBitcoinPriceUseCase: GetBitcoinPriceUseCase,
+    private val getSpaceBodiesUseCase: GetSpaceBodiesUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ExtrasUiState())
@@ -24,16 +33,13 @@ class ExtrasViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             
             try {
-                // TODO: Replace with actual API calls when use cases are implemented
-                // For now, using mock data to demonstrate the UI
-                val mockCatFact = CatFactData(
-                    fact = "Cats have over 20 muscles that control their ears.",
-                    length = 47,
-                    lastUpdated = LocalDateTime.now()
-                )
-                
+                val catFact = getCatFactUseCase()
                 _uiState.value = _uiState.value.copy(
-                    catFact = mockCatFact,
+                    catFact = CatFactData(
+                        fact = catFact.fact,
+                        length = catFact.length,
+                        lastUpdated = LocalDateTime.now()
+                    ),
                     isLoading = false,
                     error = null
                 )
@@ -57,17 +63,42 @@ class ExtrasViewModel @Inject constructor(
             try {
                 when (apiId) {
                     "catfacts" -> {
-                        // TODO: Replace with actual API call when use case is implemented
-                        val mockCatFact = CatFactData(
-                            fact = "A group of cats is called a 'clowder'.",
-                            length = 35,
+                        val catFact = getCatFactUseCase()
+                        _uiState.value = _uiState.value.copy(catFact = CatFactData(
+                            fact = catFact.fact,
+                            length = catFact.length,
                             lastUpdated = LocalDateTime.now()
-                        )
-                        _uiState.value = _uiState.value.copy(catFact = mockCatFact)
+                        ))
                     }
-                    // TODO: Add other API implementations
+                    "dogfacts" -> {
+                        val dogImage = getDogImageUseCase()
+                        _uiState.value = _uiState.value.copy(dogImage = dogImage)
+                    }
+                    "trivia" -> {
+                        val triviaQuestion = getTriviaQuestionUseCase()
+                        _uiState.value = _uiState.value.copy(triviaQuestion = triviaQuestion)
+                    }
+                    "holidays" -> {
+                        val holidays = getPublicHolidaysUseCase(2024, "US")
+                        _uiState.value = _uiState.value.copy(publicHolidays = holidays)
+                    }
+                    "universities" -> {
+                        val universities = getUniversitiesUseCase("United States")
+                        _uiState.value = _uiState.value.copy(universities = universities)
+                    }
+                    "books" -> {
+                        val books = getBooksUseCase("science")
+                        _uiState.value = _uiState.value.copy(book = books)
+                    }
+                    "bitcoin" -> {
+                        val bitcoinPrice = getBitcoinPriceUseCase()
+                        _uiState.value = _uiState.value.copy(bitcoinPrice = bitcoinPrice)
+                    }
+                    "space" -> {
+                        val spaceBody = getSpaceBodiesUseCase()
+                        _uiState.value = _uiState.value.copy(spaceBody = spaceBody)
+                    }
                     else -> {
-                        // Placeholder for other APIs
                         _uiState.value = _uiState.value.copy(
                             error = "API '$apiId' not yet implemented"
                         )
@@ -91,6 +122,13 @@ class ExtrasViewModel @Inject constructor(
 
 data class ExtrasUiState(
     val catFact: CatFactData? = null,
+    val dogImage: DogImageDto? = null,
+    val triviaQuestion: TriviaQuestionDto? = null,
+    val publicHolidays: List<PublicHolidayDto>? = null,
+    val universities: List<UniversityDto>? = null,
+    val book: BookDto? = null,
+    val bitcoinPrice: BitcoinPriceDto? = null,
+    val spaceBody: SpaceBodyDto? = null,
     val isLoading: Boolean = false,
     val error: String? = null
 )
