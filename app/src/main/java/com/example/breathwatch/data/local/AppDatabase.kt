@@ -9,6 +9,7 @@ import com.example.breathwatch.data.local.dao.AirQualityDao
 import com.example.breathwatch.data.local.dao.HealthLogDao
 import com.example.breathwatch.data.local.dao.WeatherDao
 import com.example.breathwatch.data.local.entity.AirQualityEntity
+import com.example.breathwatch.data.local.entity.CatFactEntity
 import com.example.breathwatch.data.local.entity.HealthLogEntity
 import com.example.breathwatch.data.local.entity.WeatherEntity
 import com.example.breathwatch.util.Constants
@@ -17,10 +18,11 @@ import com.example.breathwatch.util.Constants
     entities = [
         AirQualityEntity::class,
         WeatherEntity::class,
-        HealthLogEntity::class
+        HealthLogEntity::class,
+        CatFactEntity::class  // Added new entity
     ],
-    version = 1,
-    exportSchema = false
+    version = 2,  // Increased version for migration
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -28,7 +30,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun airQualityDataDao(): AirQualityDao
     abstract fun weatherDataDao(): WeatherDao
     abstract fun healthLogDao(): HealthLogDao
-    
+    abstract fun extrasDao(): ExtrasDao  // Added new DAO
+
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
@@ -40,10 +43,14 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     Constants.DATABASE_NAME
                 )
-                .addMigrations(
-                    // Add migrations here when schema changes
-                )
-                .fallbackToDestructiveMigration()
+                .addCallback(object : RoomDatabase.Callback() {
+                    override fun onCreate(db: SupportSQLiteDatabase) {
+                        super.onCreate(db)
+                        // Initialize database with default values if needed
+                    }
+                })
+                .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
+                .addMigrations(*Migrations.getAllMigrations())  // Added migrations
                 .build()
                 
                 INSTANCE = instance

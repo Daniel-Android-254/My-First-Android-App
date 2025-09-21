@@ -49,70 +49,51 @@ class AirQualitySyncWorker @AssistedInject constructor(
             // Determine how to fetch data
             val airQualityResult = when {
                 userLat != null && userLon != null -> {
-                    // Use coordinates
-                    getAirQualityUseCase.execute(userLat, userLon)
+                    getAirQualityUseCase(GetAirQualityUseCase.Params(userLat, userLon))
                 }
-                !userLocationName.isNullOrBlank() -> {
-                    // Use location name - would need to implement geocoding
-                    // For now, use default coordinates for Nairobi
-                    getAirQualityUseCase.execute(-1.2921, 36.8219)
+                userLocationName != null -> {
+                    getAirQualityUseCase(GetAirQualityUseCase.Params(locationName = userLocationName))
                 }
                 else -> {
-                    // Use default location
-                    getAirQualityUseCase.execute(-1.2921, 36.8219)
+                    // Try to get current location as fallback
+                    val location = LocationHelper.getLastKnownLocation(applicationContext)
+                    if (location != null) {
+                        getAirQualityUseCase(GetAirQualityUseCase.Params(location.latitude, location.longitude))
+                    } else {
+                        return Result.retry()
+                    }
                 }
             }
 
-            // Fetch weather data as well
-            val weatherResult = when {
-                userLat != null && userLon != null -> {
-                    getWeatherUseCase.execute(userLat, userLon)
-                }
-                else -> {
-                    getWeatherUseCase.execute(-1.2921, 36.8219)
-                }
-            }
+            airQualityResult.fold(
+                onSuccess = { airQuality ->
+                    // Check AQI threshold for notification
+                    val aqiThreshold = preferences[intPreferencesKey("aqi_threshold")] ?: 100
+                    if (airQuality.aqi > aqiThreshold) {
+                        val notification = NotificationCompat.Builder(applicationContext, BreathWatchApplication.NOTIFICATION_CHANNEL_ID)
+                            .setSmallIcon(R.drawable.ic_notification)
+                            .setContentTitle("Air Quality Alert")
+                            .setContentText("Current AQI is ${airQuality.aqi} (${AqiCategory.fromAqi(airQuality.aqi).description})")
+                            .setPriority(NotificationCompat.PRIORITY_HIGH)
+                            .setAutoCancel(true)
+                            .build()
 
-            // Check if we should send a notification
-            airQualityResult.getOrNull()?.let { airQuality ->
-                val aqiThreshold = preferences[intPreferencesKey("aqi_threshold")] ?: Constants.DEFAULT_AQI_THRESHOLD
-                
-                // Check if AQI exceeds threshold or is in unhealthy categories
-                val shouldNotify = when {
-                    airQuality.pm25 != null && airQuality.pm25 > aqiThreshold -> true
-                    airQuality.aqiCategory in listOf(
-                        AqiCategory.UNHEALTHY_FOR_SENSITIVE,
-                        AqiCategory.UNHEALTHY,
-                        AqiCategory.VERY_UNHEALTHY,
-                        AqiCategory.HAZARDOUS
-                    ) -> true
-                    else -> false
+                        val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                        notificationManager.notify(BreathWatchApplication.NOTIFICATION_ID, notification)
+                    }
+                    Result.success()
+                },
+                onFailure = { error ->
+                    // Only retry on network-related errors
+                    if (error is java.io.IOException) {
+                        Result.retry()
+                    } else {
+                        Result.failure()
+                    }
                 }
-
-                if (shouldNotify) {
-                    sendAirQualityNotification(airQuality.aqiCategoryText, airQuality.safetyAdvice)
-                }
-            }
-
-            Result.success()
+            )
         } catch (e: Exception) {
-            // Log error and retry
-            Result.retry()
+            Result.failure()
         }
-    }
-
-    private fun sendAirQualityNotification(aqiCategory: String, safetyAdvice: String) {
-        val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        
-        val notification = NotificationCompat.Builder(applicationContext, BreathWatchApplication.NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification) // You'll need to add this icon
-            .setContentTitle("Air Quality Alert")
-            .setContentText("Air quality is $aqiCategory in your area")
-            .setStyle(NotificationCompat.BigTextStyle().bigText(safetyAdvice))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
-            .build()
-
-        notificationManager.notify(BreathWatchApplication.NOTIFICATION_ID, notification)
     }
 }

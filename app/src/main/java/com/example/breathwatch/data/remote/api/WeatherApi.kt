@@ -2,21 +2,48 @@ package com.example.breathwatch.data.remote.api
 
 import com.example.breathwatch.data.remote.response.WeatherResponse
 import retrofit2.http.GET
-import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface WeatherApi {
-    
-    @GET("{location}")
+    companion object {
+        const val BASE_URL = "https://api.open-meteo.com/v1/"
+        const val DEFAULT_TIMEOUT = 30L
+        const val DEFAULT_FORECAST_DAYS = 3
+    }
+
+    @GET("forecast")
     suspend fun getWeather(
-        @Path("location") location: String,
-        @Query("format") format: String = "j1"
+        @Query("latitude") latitude: Double,
+        @Query("longitude") longitude: Double,
+        @Query("current_weather") currentWeather: Boolean = true,
+        @Query("timezone") timezone: String = "auto",
+        @Query("hourly") hourly: List<String> = listOf(
+            "temperature_2m",
+            "relative_humidity_2m",
+            "precipitation",
+            "wind_speed_10m",
+            "wind_direction_10m"
+        )
     ): WeatherResponse
-    
-    @GET("{location}")
+
+    @GET("forecast")
     suspend fun getWeatherForecast(
-        @Path("location") location: String,
-        @Query("format") format: String = "j1",
-        @Query("num_of_days") numOfDays: Int = 3
-    ): WeatherResponse
+        @Query("latitude") latitude: Double,
+        @Query("longitude") longitude: Double,
+        @Query("daily") daily: List<String> = listOf(
+            "temperature_2m_max",
+            "temperature_2m_min",
+            "precipitation_sum",
+            "wind_speed_10m_max"
+        ),
+        @Query("timezone") timezone: String = "auto",
+        @Query("forecast_days") forecastDays: Int = DEFAULT_FORECAST_DAYS
+    ): WeatherForecastResponse
+
+    @GET("geocoding")
+    suspend fun searchLocations(
+        @Query("name") query: String,
+        @Query("count") count: Int = 10,
+        @Query("language") language: String = "en"
+    ): LocationSearchResponse
 }

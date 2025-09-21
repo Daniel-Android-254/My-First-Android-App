@@ -26,7 +26,27 @@ class OnboardingViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(showLocationPermission = true)
     }
 
+    fun onAllPermissionsGranted() {
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[ONBOARDING_COMPLETED] = true
+                preferences[LOCATION_PERMISSION_GRANTED] = true
+                preferences[NOTIFICATIONS_ENABLED] = true
+            }
+        }
+        _uiState.value = _uiState.value.copy(
+            hasLocationPermission = true,
+            hasNotificationPermission = true,
+            canProceed = true
+        )
+    }
+
     fun onLocationPermissionGranted() {
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[LOCATION_PERMISSION_GRANTED] = true
+            }
+        }
         _uiState.value = _uiState.value.copy(
             showLocationPermission = false,
             hasLocationPermission = true,
@@ -34,10 +54,11 @@ class OnboardingViewModel @Inject constructor(
         )
     }
 
-    fun onLocationPermissionDenied() {
+    fun onPermissionsDenied() {
         _uiState.value = _uiState.value.copy(
             showLocationPermission = false,
             showManualLocationEntry = true,
+            showPermissionRationale = true,
             hasLocationPermission = false
         )
     }
@@ -53,43 +74,60 @@ class OnboardingViewModel @Inject constructor(
     fun onManualLocationChanged(location: String) {
         _uiState.value = _uiState.value.copy(
             manualLocation = location,
-            canProceed = location.isNotBlank(),
+            locationError = null,
+            canProceed = location.isNotBlank()
+        )
+    }
+
+    fun showNotificationWarning() {
+        _uiState.value = _uiState.value.copy(
+            showNotificationWarning = true
+        )
+    }
+
+    fun dismissPermissionRationale() {
+        _uiState.value = _uiState.value.copy(
+            showPermissionRationale = false
+        )
+    }
+
+    fun validateAndSaveManualLocation() {
+        val location = _uiState.value.manualLocation.trim()
+        if (location.isBlank()) {
+            _uiState.value = _uiState.value.copy(
+                locationError = "Please enter a valid location"
+            )
+            return
+        }
+
+        viewModelScope.launch {
+            dataStore.edit { preferences ->
+                preferences[MANUAL_LOCATION] = location
+                preferences[ONBOARDING_COMPLETED] = true
+            }
+        }
+        _uiState.value = _uiState.value.copy(
+            canProceed = true,
             locationError = null
         )
     }
 
-    fun saveManualLocation(location: String) {
-        viewModelScope.launch {
-            try {
-                dataStore.edit { preferences ->
-                    preferences[stringPreferencesKey("user_location_name")] = location
-                }
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    locationError = "Failed to save location: ${e.message}"
-                )
-            }
-        }
-    }
-
-    fun completeOnboarding() {
-        viewModelScope.launch {
-            try {
-                dataStore.edit { preferences ->
-                    preferences[booleanPreferencesKey("is_onboarding_complete")] = true
-                }
-            } catch (e: Exception) {
-                // Handle error if needed
-            }
-        }
+    companion object {
+        private val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
+        private val LOCATION_PERMISSION_GRANTED = booleanPreferencesKey("location_permission_granted")
+        private val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
+        private val MANUAL_LOCATION = stringPreferencesKey("manual_location")
     }
 }
 
 data class OnboardingUiState(
     val showLocationPermission: Boolean = false,
     val showManualLocationEntry: Boolean = false,
+    val showPermissionRationale: Boolean = false,
+    val showNotificationWarning: Boolean = false,
     val hasLocationPermission: Boolean = false,
+    val hasNotificationPermission: Boolean = false,
     val manualLocation: String = "",
-    val canProceed: Boolean = false,
-    val locationError: String? = null
+    val locationError: String? = null,
+    val canProceed: Boolean = false
 )

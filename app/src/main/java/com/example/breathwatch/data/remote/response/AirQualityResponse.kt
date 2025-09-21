@@ -1,101 +1,116 @@
 package com.example.breathwatch.data.remote.response
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
-import java.util.Date
+import com.google.gson.annotations.SerializedName
+import com.example.breathwatch.data.local.entity.AirQualityEntity
 
-@JsonClass(generateAdapter = true)
 data class AirQualityResponse(
-    @Json(name = "results") val results: List<AirQualityResult>,
-    @Json(name = "meta") val meta: Meta
+    @SerializedName("results")
+    val results: List<Measurement>,
+    @SerializedName("meta")
+    val meta: Meta
 )
 
-@JsonClass(generateAdapter = true)
-data class AirQualityResult(
-    @Json(name = "location") val location: String,
-    @Json(name = "city") val city: String?,
-    @Json(name = "country") val country: String,
-    @Json(name = "coordinates") val coordinates: Coordinates,
-    @Json(name = "measurements") val measurements: List<Measurement>,
-    @Json(name = "lastUpdated") val lastUpdated: String
-)
-
-@JsonClass(generateAdapter = true)
-data class Coordinates(
-    @Json(name = "latitude") val latitude: Double,
-    @Json(name = "longitude") val longitude: Double
-)
-
-@JsonClass(generateAdapter = true)
 data class Measurement(
-    @Json(name = "parameter") val parameter: String,
-    @Json(name = "value") val value: Double,
-    @Json(name = "unit") val unit: String,
-    @Json(name = "lastUpdated") val lastUpdated: String
+    @SerializedName("location")
+    val location: String,
+    @SerializedName("parameter")
+    val parameter: String,
+    @SerializedName("value")
+    val value: Double,
+    @SerializedName("unit")
+    val unit: String,
+    @SerializedName("coordinates")
+    val coordinates: Coordinates,
+    @SerializedName("date")
+    val date: MeasurementDate,
+    @SerializedName("city")
+    val city: String? = null,
+    @SerializedName("country")
+    val country: String? = null
 )
 
-@JsonClass(generateAdapter = true)
+data class Coordinates(
+    @SerializedName("latitude")
+    val latitude: Double,
+    @SerializedName("longitude")
+    val longitude: Double
+)
+
+data class MeasurementDate(
+    @SerializedName("utc")
+    val utc: String,
+    @SerializedName("local")
+    val local: String
+)
+
 data class Meta(
-    @Json(name = "name") val name: String,
-    @Json(name = "license") val license: String,
-    @Json(name = "website") val website: String,
-    @Json(name = "page") val page: Int,
-    @Json(name = "limit") val limit: Int,
-    @Json(name = "found") val found: Int
+    @SerializedName("name")
+    val name: String,
+    @SerializedName("license")
+    val license: String,
+    @SerializedName("website")
+    val website: String,
+    @SerializedName("page")
+    val page: Int,
+    @SerializedName("limit")
+    val limit: Int,
+    @SerializedName("found")
+    val found: Int
 )
 
-// Extension functions to map API response to domain model
-fun AirQualityResponse.toAirQualityEntity(): com.example.breathwatch.data.local.entity.AirQualityEntity {
-    val result = results.firstOrNull() ?: throw IllegalStateException("No air quality data available")
-    
-    val pm25 = result.measurements.find { it.parameter.equals("pm25", ignoreCase = true) }?.value
-    val pm10 = result.measurements.find { it.parameter.equals("pm10", ignoreCase = true) }?.value
-    val o3 = result.measurements.find { it.parameter.equals("o3", ignoreCase = true) }?.value
-    val no2 = result.measurements.find { it.parameter.equals("no2", ignoreCase = true) }?.value
-    val so2 = result.measurements.find { it.parameter.equals("so2", ignoreCase = true) }?.value
-    val co = result.measurements.find { it.parameter.equals("co", ignoreCase = true) }?.value
-    
-    // Calculate AQI based on PM2.5 (simplified version)
-    val aqi = when {
-        pm25 == null -> null
-        pm25 <= 12 -> (50.0 / 12.0 * pm25).toInt() // Good (0-50)
-        pm25 <= 35.4 -> 51 + ((99 - 51) / (35.4 - 12.1) * (pm25 - 12.1)).toInt() // Moderate (51-99)
-        pm25 <= 55.4 -> 100 + ((149 - 100) / (55.4 - 35.5) * (pm25 - 35.5)).toInt() // Unhealthy for Sensitive Groups (100-149)
-        pm25 <= 150.4 -> 150 + ((199 - 150) / (150.4 - 55.5) * (pm25 - 55.5)).toInt() // Unhealthy (150-199)
-        pm25 <= 250.4 -> 200 + ((299 - 200) / (250.4 - 150.5) * (pm25 - 150.5)).toInt() // Very Unhealthy (200-299)
-        else -> 300 + ((500 - 300) / (500.4 - 250.5) * (pm25 - 250.5)).toInt() // Hazardous (300-500)
-    }
-    
-    // Determine AQI category
-    val aqiCategory = when {
-        aqi == null -> -1
-        aqi <= 50 -> 0 // Good
-        aqi <= 100 -> 1 // Moderate
-        aqi <= 150 -> 2 // Unhealthy for Sensitive Groups
-        aqi <= 200 -> 3 // Unhealthy
-        aqi <= 300 -> 4 // Very Unhealthy
-        else -> 5 // Hazardous
-    }
-    
-    val locationName = listOfNotNull(
-        result.city,
-        result.country
-    ).joinToString(separator = ", ")
-    
-    return com.example.breathwatch.data.local.entity.AirQualityEntity(
-        id = "${result.coordinates.latitude}_${result.coordinates.longitude}",
-        latitude = result.coordinates.latitude,
-        longitude = result.coordinates.longitude,
-        locationName = locationName,
-        pm25 = pm25,
-        pm10 = pm10,
-        o3 = o3,
-        no2 = no2,
-        so2 = so2,
-        co = co,
-        aqi = aqi,
-        aqiCategory = aqiCategory,
-        lastUpdated = System.currentTimeMillis(),
-        isCached = false
+fun List<Measurement>.toAirQualityEntity(): AirQualityEntity {
+    val measurements = groupBy { it.parameter.lowercase() }
+    return AirQualityEntity(
+        locationId = "${coordinates.first().latitude},${coordinates.first().longitude}",
+        location = first().location,
+        city = first().city,
+        country = first().country,
+        latitude = coordinates.first().latitude,
+        longitude = coordinates.first().longitude,
+        pm25 = measurements["pm25"]?.firstOrNull()?.value,
+        pm10 = measurements["pm10"]?.firstOrNull()?.value,
+        o3 = measurements["o3"]?.firstOrNull()?.value,
+        no2 = measurements["no2"]?.firstOrNull()?.value,
+        so2 = measurements["so2"]?.firstOrNull()?.value,
+        co = measurements["co"]?.firstOrNull()?.value,
+        timestamp = System.currentTimeMillis(),
+        aqi = calculateAQI(measurements)  // Implement AQI calculation based on measurements
     )
+}
+
+private fun calculateAQI(measurements: Map<String, List<Measurement>>): Int {
+    // Calculate AQI based on EPA standards
+    // Reference: https://www.airnow.gov/aqi/aqi-calculator-concentration/
+    val pm25Value = measurements["pm25"]?.firstOrNull()?.value
+    val pm10Value = measurements["pm10"]?.firstOrNull()?.value
+    val o3Value = measurements["o3"]?.firstOrNull()?.value
+    val no2Value = measurements["no2"]?.firstOrNull()?.value
+
+    val aqiValues = mutableListOf<Int>()
+
+    pm25Value?.let { aqiValues.add(calculatePM25AQI(it)) }
+    pm10Value?.let { aqiValues.add(calculatePM10AQI(it)) }
+    o3Value?.let { aqiValues.add(calculateO3AQI(it)) }
+    no2Value?.let { aqiValues.add(calculateNO2AQI(it)) }
+
+    return aqiValues.maxOrNull() ?: 0
+}
+
+private fun calculatePM25AQI(concentration: Double): Int {
+    // PM2.5 breakpoints (μg/m3) and corresponding AQI values
+    return when {
+        concentration <= 12.0 -> linearScale(concentration, 0.0, 12.0, 0, 50)
+        concentration <= 35.4 -> linearScale(concentration, 12.1, 35.4, 51, 100)
+        concentration <= 55.4 -> linearScale(concentration, 35.5, 55.4, 101, 150)
+        concentration <= 150.4 -> linearScale(concentration, 55.5, 150.4, 151, 200)
+        concentration <= 250.4 -> linearScale(concentration, 150.5, 250.4, 201, 300)
+        concentration <= 500.4 -> linearScale(concentration, 250.5, 500.4, 301, 500)
+        else -> 500
+    }
+}
+
+// Similar functions for PM10, O3, and NO2 AQI calculations...
+
+private fun linearScale(conc: Double, cLow: Double, cHigh: Double, iLow: Int, iHigh: Int): Int {
+    return ((iHigh - iLow) / (cHigh - cLow) * (conc - cLow) + iLow).toInt()
 }

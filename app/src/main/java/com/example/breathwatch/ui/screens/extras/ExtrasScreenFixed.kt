@@ -14,9 +14,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import com.example.breathwatch.data.remote.model.extras.*
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
@@ -133,7 +136,7 @@ fun ExtrasScreen(
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = catFact.displayText,
+                                text = catFact.fact,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onTertiaryContainer
                             )
@@ -142,8 +145,119 @@ fun ExtrasScreen(
                 }
             }
 
+            // Dog Image
+            uiState.dogImage?.let { dogImage ->
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("🐶 Random Dog", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            AsyncImage(
+                                model = dogImage.message,
+                                contentDescription = "Random Dog Image",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Trivia Question
+            uiState.triviaQuestion?.let { trivia ->
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("❓ Trivia Question", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("Category: ${trivia.category}", style = MaterialTheme.typography.bodySmall)
+                            Text(trivia.question, style = MaterialTheme.typography.bodyLarge)
+                        }
+                    }
+                }
+            }
+
+            // Public Holidays
+            uiState.publicHolidays?.let { holidays ->
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("🎉 Public Holidays (US, 2024)", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            holidays.take(5).forEach { holiday ->
+                                Text("${holiday.date}: ${holiday.name}")
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Universities
+            uiState.universities?.let { universities ->
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("🎓 Universities (USA)", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            universities.take(5).forEach { uni ->
+                                Text(uni.name)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Book
+            uiState.book?.let { book ->
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("📚 Book Recommendation", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(book.volumeInfo.title, fontWeight = FontWeight.Bold)
+                            Text("by ${book.volumeInfo.authors.joinToString()}", style = MaterialTheme.typography.bodySmall)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(book.volumeInfo.description, maxLines = 4)
+                        }
+                    }
+                }
+            }
+
+            // Bitcoin Price
+            uiState.bitcoinPrice?.let { price ->
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("💰 Bitcoin Price", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("USD: ${price.bpi.uSD.rate}")
+                            Text("GBP: ${price.bpi.gBP.rate}")
+                            Text("EUR: ${price.bpi.eUR.rate}")
+                            Text("Last updated: ${price.time.updated}", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+            }
+
+            // Space Body
+            uiState.spaceBody?.let { body ->
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("🪐 Space Body: ${body.englishName}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("Type: ${body.bodyType}")
+                            Text("Gravity: ${body.gravity} m/s²")
+                            Text("Discovered by: ${body.discoveredBy} on ${body.discoveryDate}")
+                        }
+                    }
+                }
+            }
+
             // Placeholder for future API integrations
-            if (uiState.catFact == null && !uiState.isLoading && uiState.error == null) {
+            if (uiState.catFact == null && uiState.dogImage == null && uiState.triviaQuestion == null && uiState.publicHolidays == null && uiState.universities == null && uiState.book == null && uiState.bitcoinPrice == null && uiState.spaceBody == null && !uiState.isLoading && uiState.error == null) {
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth()

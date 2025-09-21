@@ -1,10 +1,15 @@
 package com.example.breathwatch.data.remote.response
 
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonClass
+import com.google.gson.annotations.SerializedName
 
-@JsonClass(generateAdapter = true)
 data class CatFactResponse(
-    @Json(name = "fact") val fact: String,
-    @Json(name = "length") val length: Int
+    @SerializedName("fact")
+    val fact: String,
+    @SerializedName("length")
+    val length: Int
+)
+
+fun CatFactResponse.toCatFactData() = CatFactData(
+    fact = fact,
+    timestamp = System.currentTimeMillis()
 )

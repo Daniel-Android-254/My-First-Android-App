@@ -6,8 +6,7 @@ import com.example.breathwatch.data.remote.api.AirQualityApi
 import com.example.breathwatch.data.remote.response.toAirQualityEntity
 import com.example.breathwatch.domain.repository.AirQualityRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import java.io.IOException
+import kotlinx.coroutines.flow.first
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -15,110 +14,108 @@ import javax.inject.Singleton
 @Singleton
 class AirQualityRepositoryImpl @Inject constructor(
     private val airQualityApi: AirQualityApi,
-    private val airQualityDao: AirQualityDao
-) : AirQualityRepository {
+    private val airQualityDao: AirQualityDao,
+    private val cacheStrategy: CacheStrategy
+) : AirQualityRepository, BaseRepository<AirQualityEntity> {
 
     override suspend fun getAirQuality(latitude: Double, longitude: Double) = try {
-        // Try to get fresh data from API
-        val response = airQualityApi.getAirQuality("$latitude,$longitude")
-        val airQuality = response.toAirQualityEntity()
-        
-        // Save to local database
-        airQualityDao.insertAirQuality(airQuality)
-        
-        // Also save as cached data
-        val cachedAirQuality = airQuality.copy(isCached = true)
-        airQualityDao.insertAirQuality(cachedAirQuality)
-        
-        Result.success(airQuality)
+        require(latitude in -90.0..90.0) { "Invalid latitude: $latitude" }
+        require(longitude in -180.0..180.0) { "Invalid longitude: $longitude" }
+
+        cacheStrategy.cachingStrategy(
+            dbQuery = { airQualityDao.observeAirQualityByLocation(latitude, longitude) },
+            networkCall = {
+                Result.wrap {
+                    airQualityApi.getAirQuality("$latitude,$longitude")
+                        .toAirQualityEntity()
+                        .copy(timestamp = System.currentTimeMillis())
+                }
+            },
+            saveCallResult = { airQualityDao.insertAirQuality(it) },
+            shouldFetch = { cached ->
+                cached == null || isDataStale(cached.timestamp, MAX_AGE)
+            }
+        ).first()
+    } catch (e: IllegalArgumentException) {
+        Result.Error(e)
     } catch (e: Exception) {
-        // If network fails, try to get from local database
-        val localAirQuality = airQualityDao.getAirQualityById(
-            AirQualityDao.getLocationId(latitude, longitude)
-        )
-        
-        if (localAirQuality != null) {
-            Result.success(localAirQuality)
-        } else {
-            Result.failure(e)
-        }
+        Result.Error(e)
     }
 
-    override fun observeAirQuality(latitude: Double, longitude: Double): Flow<AirQualityEntity?> {
-        return airQualityDao.observeAirQualityByLocation(latitude, longitude)
+    override fun observeAirQuality(latitude: Double, longitude: Double): Flow<Result<AirQualityEntity>> {
+        return cacheStrategy.cachingStrategy(
+            dbQuery = { airQualityDao.observeAirQualityByLocation(latitude, longitude) },
+            networkCall = {
+                Result.wrap {
+                    airQualityApi.getAirQuality("$latitude,$longitude")
+                        .toAirQualityEntity()
+                        .copy(timestamp = System.currentTimeMillis())
+                }
+            },
+            saveCallResult = { airQualityDao.insertAirQuality(it) },
+            shouldFetch = { cached ->
+                cached == null || isDataStale(cached.timestamp, MAX_AGE)
+            }
+        )
     }
 
     override suspend fun getAirQualityByLocationName(locationName: String) = try {
-        val response = airQualityApi.getAirQualityByCity(locationName)
-        val airQuality = response.toAirQualityEntity()
-        
-        // Save to local database
-        airQualityDao.insertAirQuality(airQuality)
-        
-        // Also save as cached data
-        val cachedAirQuality = airQuality.copy(isCached = true)
-        airQualityDao.insertAirQuality(cachedAirQuality)
-        
-        Result.success(airQuality)
+        require(locationName.isNotBlank()) { "Location name cannot be empty" }
+
+        cacheStrategy.cachingStrategy(
+            dbQuery = { airQualityDao.observeLatestAirQualityByLocationName(locationName) },
+            networkCall = {
+                Result.wrap {
+                    airQualityApi.getAirQualityByCity(locationName)
+                        .toAirQualityEntity()
+                        .copy(timestamp = System.currentTimeMillis())
+                }
+            },
+            saveCallResult = { airQualityDao.insertAirQuality(it) },
+            shouldFetch = { cached ->
+                cached == null || isDataStale(cached.timestamp, MAX_AGE)
+            }
+        ).first()
+    } catch (e: IllegalArgumentException) {
+        Result.Error(e)
     } catch (e: Exception) {
-        // If network fails, try to get from local database by name
-        val localAirQuality = airQualityDao.getLatestAirQualityByLocationName(locationName)
-        
-        if (localAirQuality != null) {
-            Result.success(localAirQuality)
-        } else {
-            Result.failure(e)
+        Result.Error(e)
+    }
+
+    override suspend fun refresh() = try {
+        // Refresh all cached locations
+        val cachedLocations = airQualityDao.getAllLocations()
+        cachedLocations.forEach { location ->
+            cacheStrategy.refreshData {
+                val response = airQualityApi.getAirQuality(location)
+                val entity = response.toAirQualityEntity()
+                    .copy(timestamp = System.currentTimeMillis())
+                airQualityDao.insertAirQuality(entity)
+            }
         }
+        Result.Success(Unit)
+    } catch (e: Exception) {
+        Result.Error(e)
     }
 
-    override suspend fun saveAirQuality(airQuality: AirQualityEntity) {
-        airQualityDao.insertAirQuality(airQuality)
+    override fun observe(): Flow<Result<List<AirQualityEntity>>> {
+        return cacheStrategy.cachingStrategy(
+            dbQuery = { airQualityDao.observeAllAirQuality() },
+            networkCall = { refresh() },
+            saveCallResult = { /* Already saved in refresh() */ },
+            shouldFetch = { cached ->
+                cached?.any { isDataStale(it.timestamp, MAX_AGE) } ?: true
+            }
+        )
     }
 
-    override suspend fun getCachedAirQuality(): AirQualityEntity? {
-        return airQualityDao.getAirQualityById("cached")
+    override suspend fun get(): Result<List<AirQualityEntity>> = observe().first()
+
+    override suspend fun clear() {
+        airQualityDao.deleteAll()
     }
 
-    override fun observeCachedAirQuality(): Flow<AirQualityEntity?> {
-        return airQualityDao.observeLatestCachedAirQuality()
-    }
-
-    override suspend fun getAirQualityHistory(
-        latitude: Double,
-        longitude: Double,
-        days: Int
-    ): Result<List<AirQualityEntity>> {
-        // In a real app, this would fetch historical data from the API
-        // For now, we'll return the latest data as a list with a single item
-        return try {
-            val current = getAirQuality(latitude, longitude).getOrThrow()
-            Result.success(listOf(current))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun getAirQualityForDay(
-        latitude: Double,
-        longitude: Double,
-        timestamp: Long
-    ): Result<List<AirQualityEntity>> {
-        // In a real app, this would fetch data for a specific day
-        // For now, we'll just return the current data
-        return try {
-            val current = getAirQuality(latitude, longitude).getOrThrow()
-            Result.success(listOf(current))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    private fun getCurrentDateTimestamp(): Long {
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-        return calendar.timeInMillis
+    companion object {
+        private const val MAX_AGE = 30 * 60 * 1000L // 30 minutes
     }
 }

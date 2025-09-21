@@ -28,16 +28,40 @@ fun OnboardingScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     
-    val locationPermissionLauncher = rememberLauncherForActivityResult(
+    val permissionsToRequest = remember {
+        buildList {
+            add(Manifest.permission.ACCESS_FINE_LOCATION)
+            add(Manifest.permission.ACCESS_COARSE_LOCATION)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                add(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        val fineLocationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
-        val coarseLocationGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-        
-        if (fineLocationGranted || coarseLocationGranted) {
-            viewModel.onLocationPermissionGranted()
+        val locationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        val notificationGranted = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            permissions[Manifest.permission.POST_NOTIFICATIONS] == true
         } else {
-            viewModel.onLocationPermissionDenied()
+            true
+        }
+
+        when {
+            locationGranted && notificationGranted -> {
+                viewModel.onAllPermissionsGranted()
+                onNavigateToHome()
+            }
+            locationGranted -> {
+                viewModel.onLocationPermissionGranted()
+                // Still allow proceeding but warn about notifications
+                viewModel.showNotificationWarning()
+            }
+            else -> {
+                viewModel.onPermissionsDenied()
+            }
         }
     }
 
@@ -84,7 +108,7 @@ fun OnboardingScreen(
             textAlign = TextAlign.Center
         )
         
-        // Privacy Information
+        // Updated Privacy Information
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -92,17 +116,29 @@ fun OnboardingScreen(
             )
         ) {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = "Privacy First",
+                    text = "Required Permissions",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+
                 Text(
-                    text = "• All your health logs stay on your device\n• No personal data is shared with third parties\n• Analytics are completely optional\n• You control your data",
+                    text = "• Location: To provide accurate air quality data for your area",
                     style = MaterialTheme.typography.bodyMedium
+                )
+
+                Text(
+                    text = "• Notifications: To alert you about poor air quality",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                Text(
+                    text = "Your data stays on your device and is never shared without your consent.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -153,7 +189,7 @@ fun OnboardingScreen(
                     Spacer(modifier = Modifier.height(12.dp))
                     Button(
                         onClick = {
-                            locationPermissionLauncher.launch(
+                            permissionLauncher.launch(
                                 arrayOf(
                                     Manifest.permission.ACCESS_FINE_LOCATION,
                                     Manifest.permission.ACCESS_COARSE_LOCATION
@@ -213,14 +249,14 @@ fun OnboardingScreen(
         // Continue Button
         Button(
             onClick = {
-                if (uiState.showManualLocationEntry && uiState.manualLocation.isNotBlank()) {
-                    viewModel.saveManualLocation(uiState.manualLocation)
+                if (!LocationHelper.hasLocationPermission(context)) {
+                    permissionLauncher.launch(permissionsToRequest.toTypedArray())
+                } else {
+                    viewModel.onAllPermissionsGranted()
+                    onNavigateToHome()
                 }
-                viewModel.completeOnboarding()
-                onNavigateToHome()
             },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = uiState.canProceed
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text("Get Started")
         }
@@ -231,6 +267,36 @@ fun OnboardingScreen(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
+        )
+    }
+
+    if (uiState.showPermissionRationale) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissPermissionRationale() },
+            title = { Text("Permissions Required") },
+            text = {
+                Text(
+                    "BreathWatch needs location access to provide accurate air quality data. " +
+                    "Notifications help you stay informed about air quality alerts."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.dismissPermissionRationale()
+                        permissionLauncher.launch(permissionsToRequest.toTypedArray())
+                    }
+                ) {
+                    Text("Grant Permissions")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { viewModel.dismissPermissionRationale() }
+                ) {
+                    Text("Not Now")
+                }
+            }
         )
     }
 }

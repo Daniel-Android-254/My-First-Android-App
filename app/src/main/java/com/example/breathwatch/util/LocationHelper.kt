@@ -13,6 +13,8 @@ import com.google.android.gms.tasks.CancellationTokenSource
 
 object LocationHelper {
     
+    private const val LOCATION_TIMEOUT = 10000L // 10 seconds
+
     fun hasLocationPermission(context: Context): Boolean {
         return ContextCompat.checkSelfPermission(
             context,
@@ -33,13 +35,25 @@ object LocationHelper {
             onLocationError?.invoke("Location permission not granted")
             return
         }
-        
+
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) &&
+            !locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            onLocationError?.invoke("Location services are disabled")
+            return
+        }
+
         val fusedLocationClient: FusedLocationProviderClient = 
             LocationServices.getFusedLocationProviderClient(context)
         
         try {
             val cancellationTokenSource = CancellationTokenSource()
             
+            // Set timeout
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                cancellationTokenSource.cancel()
+            }, LOCATION_TIMEOUT)
+
             fusedLocationClient.getCurrentLocation(
                 Priority.PRIORITY_HIGH_ACCURACY,
                 cancellationTokenSource.token
@@ -47,24 +61,39 @@ object LocationHelper {
                 if (location != null) {
                     onLocationReceived(location.latitude, location.longitude)
                 } else {
-                    // Try to get last known location
-                    fusedLocationClient.lastLocation.addOnSuccessListener { lastLocation ->
-                        if (lastLocation != null) {
-                            onLocationReceived(lastLocation.latitude, lastLocation.longitude)
-                        } else {
-                            // Fallback to default location (Nairobi, Kenya)
-                            onLocationReceived(-1.2921, 36.8219)
-                            onLocationError?.invoke("Unable to get current location, using default")
-                        }
-                    }
+                    // Try to get last known location as fallback
+                    getLastKnownLocation(context)?.let { lastLocation ->
+                        onLocationReceived(lastLocation.latitude, lastLocation.longitude)
+                    } ?: onLocationError?.invoke("Unable to get location")
                 }
             }.addOnFailureListener { exception ->
-                // Fallback to default location (Nairobi, Kenya)
-                onLocationReceived(-1.2921, 36.8219)
-                onLocationError?.invoke("Location error: ${exception.message}")
+                onLocationError?.invoke(exception.message ?: "Failed to get location")
             }
         } catch (e: SecurityException) {
             onLocationError?.invoke("Location permission denied")
+        } catch (e: Exception) {
+            onLocationError?.invoke("Error getting location: ${e.message}")
+        }
+    }
+
+    fun getLastKnownLocation(context: Context): Location? {
+        if (!hasLocationPermission(context)) {
+            return null
+        }
+
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        try {
+            // Try GPS provider first
+            locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)?.let { return it }
+
+            // Fall back to network provider
+            locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)?.let { return it }
+
+            // Finally try passive provider
+            return locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER)
+        } catch (e: SecurityException) {
+            return null
         }
     }
     

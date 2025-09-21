@@ -12,91 +12,133 @@ import javax.inject.Singleton
 @Singleton
 class WeatherRepositoryImpl @Inject constructor(
     private val weatherApi: WeatherApi,
-    private val weatherDao: WeatherDao
-) : WeatherRepository {
+    private val weatherDao: WeatherDao,
+    private val cacheStrategy: CacheStrategy
+) : WeatherRepository, BaseRepository<WeatherEntity> {
 
     override suspend fun getWeather(latitude: Double, longitude: Double) = try {
-        // Try to get fresh data from API
-        val response = weatherApi.getWeather("$latitude,$longitude")
-        val weather = response.toWeatherEntity()
-        
-        // Save to local database
-        weatherDao.insertWeather(weather)
-        
-        // Also save as cached data
-        val cachedWeather = weather.copy(isCached = true)
-        weatherDao.insertWeather(cachedWeather)
-        
-        Result.success(weather)
+        require(latitude in -90.0..90.0) { "Invalid latitude: $latitude" }
+        require(longitude in -180.0..180.0) { "Invalid longitude: $longitude" }
+
+        cacheStrategy.cachingStrategy(
+            dbQuery = { weatherDao.observeWeatherByLocation(latitude, longitude) },
+            networkCall = {
+                Result.wrap {
+                    weatherApi.getWeather("$latitude,$longitude")
+                        .toWeatherEntity()
+                        .copy(timestamp = System.currentTimeMillis())
+                }
+            },
+            saveCallResult = { weatherDao.insertWeather(it) },
+            shouldFetch = { cached ->
+                cached == null || isDataStale(cached.timestamp, MAX_AGE)
+            }
+        ).first()
+    } catch (e: IllegalArgumentException) {
+        Result.Error(e)
     } catch (e: Exception) {
-        // If network fails, try to get from local database
-        val localWeather = weatherDao.getWeatherById(
-            WeatherDao.getLocationId(latitude, longitude)
-        )
-        
-        if (localWeather != null) {
-            Result.success(localWeather)
-        } else {
-            Result.failure(e)
-        }
+        Result.Error(e)
     }
 
-    override fun observeWeather(latitude: Double, longitude: Double): Flow<WeatherEntity?> {
-        return weatherDao.observeWeatherByLocation(latitude, longitude)
+    override fun observeWeather(latitude: Double, longitude: Double): Flow<Result<WeatherEntity>> {
+        return cacheStrategy.cachingStrategy(
+            dbQuery = { weatherDao.observeWeatherByLocation(latitude, longitude) },
+            networkCall = {
+                Result.wrap {
+                    weatherApi.getWeather("$latitude,$longitude")
+                        .toWeatherEntity()
+                        .copy(timestamp = System.currentTimeMillis())
+                }
+            },
+            saveCallResult = { weatherDao.insertWeather(it) },
+            shouldFetch = { cached ->
+                cached == null || isDataStale(cached.timestamp, MAX_AGE)
+            }
+        )
+    }
+
+    override suspend fun getWeatherForecast(latitude: Double, longitude: Double) = try {
+        require(latitude in -90.0..90.0) { "Invalid latitude: $latitude" }
+        require(longitude in -180.0..180.0) { "Invalid longitude: $longitude" }
+
+        cacheStrategy.cachingStrategy(
+            dbQuery = { weatherDao.observeForecastByLocation(latitude, longitude) },
+            networkCall = {
+                Result.wrap {
+                    weatherApi.getWeatherForecast("$latitude,$longitude")
+                        .toWeatherEntity()
+                        .copy(timestamp = System.currentTimeMillis())
+                }
+            },
+            saveCallResult = { weatherDao.insertWeather(it) },
+            shouldFetch = { cached ->
+                cached == null || isDataStale(cached.timestamp, FORECAST_MAX_AGE)
+            }
+        ).first()
+    } catch (e: IllegalArgumentException) {
+        Result.Error(e)
+    } catch (e: Exception) {
+        Result.Error(e)
     }
 
     override suspend fun getWeatherByLocationName(locationName: String) = try {
-        val response = weatherApi.getWeather(locationName)
-        val weather = response.toWeatherEntity()
-        
-        // Save to local database
-        weatherDao.insertWeather(weather)
-        
-        // Also save as cached data
-        val cachedWeather = weather.copy(isCached = true)
-        weatherDao.insertWeather(cachedWeather)
-        
-        Result.success(weather)
+        require(locationName.isNotBlank()) { "Location name cannot be empty" }
+
+        cacheStrategy.cachingStrategy(
+            dbQuery = { weatherDao.observeLatestWeatherByLocationName(locationName) },
+            networkCall = {
+                Result.wrap {
+                    weatherApi.getWeather(locationName)
+                        .toWeatherEntity()
+                        .copy(timestamp = System.currentTimeMillis())
+                }
+            },
+            saveCallResult = { weatherDao.insertWeather(it) },
+            shouldFetch = { cached ->
+                cached == null || isDataStale(cached.timestamp, MAX_AGE)
+            }
+        ).first()
+    } catch (e: IllegalArgumentException) {
+        Result.Error(e)
     } catch (e: Exception) {
-        // If network fails, try to get from local database by name
-        val localWeather = weatherDao.getLatestWeatherByLocationName(locationName)
-        
-        if (localWeather != null) {
-            Result.success(localWeather)
-        } else {
-            Result.failure(e)
+        Result.Error(e)
+    }
+
+    override suspend fun refresh() = try {
+        // Refresh all cached locations
+        val cachedLocations = weatherDao.getAllLocations()
+        cachedLocations.forEach { location ->
+            cacheStrategy.refreshData {
+                val response = weatherApi.getWeather(location)
+                val entity = response.toWeatherEntity()
+                    .copy(timestamp = System.currentTimeMillis())
+                weatherDao.insertWeather(entity)
+            }
         }
+        Result.Success(Unit)
+    } catch (e: Exception) {
+        Result.Error(e)
     }
 
-    override suspend fun saveWeather(weather: WeatherEntity) {
-        weatherDao.insertWeather(weather)
+    override fun observe(): Flow<Result<List<WeatherEntity>>> {
+        return cacheStrategy.cachingStrategy(
+            dbQuery = { weatherDao.observeAllWeather() },
+            networkCall = { refresh() },
+            saveCallResult = { /* Already saved in refresh() */ },
+            shouldFetch = { cached ->
+                cached?.any { isDataStale(it.timestamp, MAX_AGE) } ?: true
+            }
+        )
     }
 
-    override suspend fun getCachedWeather(): WeatherEntity? {
-        return weatherDao.getWeatherById("cached")
+    override suspend fun get(): Result<List<WeatherEntity>> = observe().first()
+
+    override suspend fun clear() {
+        weatherDao.deleteAll()
     }
 
-    override fun observeCachedWeather(): Flow<WeatherEntity?> {
-        return weatherDao.observeLatestCachedWeather()
-    }
-
-    override suspend fun getWeatherForecast(
-        latitude: Double,
-        longitude: Double,
-        days: Int
-    ): Result<List<WeatherEntity>> {
-        return try {
-            val response = weatherApi.getWeatherForecast("$latitude,$longitude", numOfDays = days)
-            val weather = response.toWeatherEntity()
-            
-            // Save to local database
-            weatherDao.insertWeather(weather)
-            
-            // For now, return single item as forecast
-            // In a real implementation, you'd parse multiple days from the response
-            Result.success(listOf(weather))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    companion object {
+        private const val MAX_AGE = 30 * 60 * 1000L // 30 minutes
+        private const val FORECAST_MAX_AGE = 3 * 60 * 60 * 1000L // 3 hours
     }
 }
